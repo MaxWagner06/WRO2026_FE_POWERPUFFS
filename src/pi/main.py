@@ -76,6 +76,7 @@ def main():
 
             # Lock direction from first confirmed line reading
             # (pass lines into fsm if you want it to use camera-based direction)
+            # For now, line detection runs here so the data path is ready for that handoff.
 
             # Navigator output depends on whether we're in a corner
             nav_steering, nav_speed = nav.compute(
@@ -102,6 +103,7 @@ def main():
     finally:
         log.info("Sending emergency stop")
         serial.send_command(CMD_ESTOP, 0)
+        # Give the TX thread one final slice so the ESTOP leaves the Pi before shutdown.
         time.sleep(0.1)   # allow the TX thread one last cycle
         cam.stop()
         serial.stop()

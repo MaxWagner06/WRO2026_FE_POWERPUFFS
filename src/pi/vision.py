@@ -64,6 +64,7 @@ class Vision:
             mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN,  kernel)
             mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
+            # External contours are enough because each field object is treated as one blob.
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             for cnt in contours:
@@ -74,6 +75,7 @@ class Vision:
                 M = cv2.moments(cnt)
                 if M['m00'] == 0:
                     continue
+                # Centroids drive steering decisions, while bbox remains useful for logging/debug overlays.
                 cx = int(M['m10'] / M['m00'])
                 cy = int(M['m01'] / M['m00'])
                 bbox = cv2.boundingRect(cnt)

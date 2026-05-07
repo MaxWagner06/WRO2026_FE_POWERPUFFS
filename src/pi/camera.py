@@ -9,6 +9,7 @@ class Camera:
         self._config = config
         self._cam = Picamera2()
         self._frame = None
+        # The capture thread owns writes; the main loop reads snapshots through this lock.
         self._lock = threading.Lock()
         self._running = False
         self._thread = None
@@ -38,6 +39,7 @@ class Camera:
         while self._running:
             frame = self._cam.capture_array()  # returns BGR numpy array
             with self._lock:
+                # Keep only the newest frame; stale frames are worse than skipped frames here.
                 self._frame = frame
 
     def get_frame(self) -> np.ndarray | None:

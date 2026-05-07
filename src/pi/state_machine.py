@@ -75,6 +75,7 @@ class StateMachine:
 
     @property
     def in_corner(self) -> bool:
+        # Exposed so Navigator can switch gains without owning lap-counting state.
         return self._in_corner
 
     # ─── State Handlers ─────────────────────────────────────────────────────────
@@ -205,6 +206,7 @@ class StateMachine:
                 # Check we were cornering long enough (not just noise)
                 duration_ms = (time.monotonic() - self._corner_entry_time) * 1000
                 if duration_ms >= self._cfg.GYRO_CORNER_MIN_MS:
+                    # The competition course alternates corner/straight sections.
                     self.section_count += 2   # corner + following straight = 2 sections
                     if self.section_count >= self._cfg.SECTIONS_PER_LAP:
                         self.section_count = 0

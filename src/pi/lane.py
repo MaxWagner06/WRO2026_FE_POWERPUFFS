@@ -12,6 +12,7 @@ class LaneDetector:
         self._min_area  = config.MIN_CONTOUR_AREA
 
         # Keep recent history to decide direction once we've seen both colours
+        # Reserved for temporal smoothing; current direction inference is frame-local.
         self._orange_cx_history = []
         self._blue_cx_history   = []
 
@@ -52,6 +53,7 @@ class LaneDetector:
         """Return the horizontal centroid of the largest blob matching the given HSV range."""
         mask = cv2.inRange(hsv, lo, hi)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        # A light open removes speckles without erasing the painted line blob.
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

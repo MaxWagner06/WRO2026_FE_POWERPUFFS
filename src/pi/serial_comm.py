@@ -42,9 +42,11 @@ class SerialComm:
         self._running  = False
 
         self._telemetry      = None   # latest parsed telemetry dict
+        # RX updates telemetry asynchronously; main loop reads copies through this lock.
         self._telem_lock     = threading.Lock()
 
         self._cmd_queue      = []     # list of (msg_type, value) tuples
+        # Commands are queued by the main loop and drained on the fixed-rate TX thread.
         self._cmd_lock       = threading.Lock()
 
         self._rx_thread = None
@@ -96,6 +98,7 @@ class SerialComm:
             for (msg_type, value) in cmds:
                 pkt = self._build_command(msg_type, value)
                 try:
+                    # Packet timing is handled by this loop; callers only enqueue intents.
                     self._ser.write(pkt)
                 except serial.SerialException as e:
                     log.error("TX error: %s", e)
@@ -132,6 +135,7 @@ class SerialComm:
                 pkt = buf[:_TELEM_TOTAL_LEN]
                 expected_crc = _crc8_maxim(pkt[:-1])
                 if pkt[-1] == expected_crc:
+                    # Only publish telemetry after CRC passes, keeping consumers on trusted data.
                     telem = self._parse_telemetry(pkt)
                     with self._telem_lock:
                         self._telemetry = telem

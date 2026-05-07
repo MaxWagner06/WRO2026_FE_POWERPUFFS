@@ -35,6 +35,7 @@ class Navigator:
         tof_front = telemetry.get('tof_front', 2000) if telemetry else 2000
 
         # ── 2. Select PD gains: stronger during corners ──
+        # The FSM supplies in_corner so navigation can react before vision fully settles.
         kp = self._cfg.KP_CORNER   if in_corner else self._cfg.KP_STRAIGHT
         kd = self._cfg.KD_CORNER   if in_corner else self._cfg.KD_STRAIGHT
 
@@ -47,6 +48,7 @@ class Navigator:
 
         # ── 4. Corner pre-emption ──
         if tof_front < self._cfg.CORNER_THRESHOLD_MM:
+            # Steering stays PD-based here; the lower speed gives the corner controller room.
             speed = float(self._cfg.SPEED_CORNER)
         else:
             speed = float(self._cfg.SPEED_STRAIGHT)
